@@ -11,7 +11,6 @@ type Server struct {
 	port   int
 	mux    *http.ServeMux
 
-	
 }
 
 func NewServer(log *slog.Logger, port int) *Server {
