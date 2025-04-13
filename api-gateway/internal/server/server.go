@@ -47,7 +47,7 @@ func (s *Server) configure() {
 
 	s.mux.Handle("POST /order/create", s.orderHanler.CreateOrder())
 	s.mux.Handle("GET /order/get", s.orderHanler.GetOrder())
-	s.mux.Handle("UPT /order/update", s.orderHanler.UpdateOrder())
+	s.mux.Handle("PUT /order/update", s.orderHanler.UpdateOrder())
 	s.mux.Handle("POST /order/close", s.orderHanler.CloseOrder())
 	s.mux.Handle("GET /order/list", s.orderHanler.ListOrders())
 	s.mux.Handle("DELETE /order/delete", s.orderHanler.DeleteOrder())

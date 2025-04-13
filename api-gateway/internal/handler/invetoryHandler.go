@@ -103,7 +103,6 @@ func (h *InventoryHandler) List() http.HandlerFunc {
 		}
 
 		utils.Response(w, r, http.StatusOK, res.Comics)
-
 	}
 }
 
@@ -125,8 +124,7 @@ func (h *InventoryHandler) Delete() http.HandlerFunc {
 			return
 		}
 
-		json.NewEncoder(w).Encode(res)
-		
+		utils.Response(w, r, http.StatusOK, res)
 	}
 }
 
@@ -137,7 +135,7 @@ func (h *InventoryHandler) Update() http.HandlerFunc {
 		Author      string  `json:"author"`
 		Description string  `json:"description"`
 		ReleaseDate string  `json:"release_date"`
-		Price       float32 `json:"price"`
+		Price       int64 `json:"price"`
 		Quantity    int32   `json:"quantity"`
 	}
 
