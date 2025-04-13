@@ -16,7 +16,7 @@ func main() {
 		log.Fatalf("failed to listen on port 50052: %v", err)
 	}
 
-	store, err := sqlite.NewStorage("./storage/user.db")
+	store, err := sqlite.NewStorage("./storage/comics.db")
 	if err != nil {
 		log.Fatalf("error to load storage: %v", err)
 	}

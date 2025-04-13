@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/barcek2281/comics-store/order/internal/storage"
@@ -39,6 +40,7 @@ func (g *GRPCserver) CreateOrder(ctx context.Context, in *orderv1.CreateOrderReq
 
 	err := g.store.CreateOrder(ctx, order)
 	if err != nil {
+		fmt.Printf("error to create order: %v", err)
 		return nil, err
 	}
 
