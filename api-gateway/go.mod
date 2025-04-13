@@ -10,6 +10,7 @@ require (
 
 require (
 	github.com/BurntSushi/toml v1.5.0 // indirect
+	github.com/barcek2281/proto v0.0.0-20250412082746-8e5f3c47245f
 	github.com/joho/godotenv v1.5.1 // indirect
 	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect

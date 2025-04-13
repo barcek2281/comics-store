@@ -1,6 +1,8 @@
 github.com/BurntSushi/toml v1.2.1/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
 github.com/BurntSushi/toml v1.5.0 h1:W5quZX/G/csjUnuI8SUYlsHs9M38FC7znL0lIO+DvMg=
 github.com/BurntSushi/toml v1.5.0/go.mod h1:ukJfTF/6rtPPRCnwkur4qwRxa8vTRFBF0uk2lLoLwho=
+github.com/barcek2281/proto v0.0.0-20250412082746-8e5f3c47245f h1:zBXIvcBLIT+tKCm4CRRwMVHDxPPrJIIiCjGaN5eRZEY=
+github.com/barcek2281/proto v0.0.0-20250412082746-8e5f3c47245f/go.mod h1:K5kuRyhl5EpAGRftHRaPABSdQj6Px114sK1iaV/bw8Q=
 github.com/barcek2281/proto-comics v0.0.0-20250412081600-6c052819b37e h1:Wg5QVr0Fyqqi3Fa4s1GCQxyDD2wZ+1EhS0fwHp9CSlM=
 github.com/barcek2281/proto-comics v0.0.0-20250412081600-6c052819b37e/go.mod h1:N3i5QJDLuORa3vp/nii4Ij9E2/276sZ25BZjbCHWDgo=
 github.com/go-logr/logr v1.4.2 h1:6pFjapn8bFcIbiKo3XT4j/BhANplGihG6tvd+8rYgrY=
