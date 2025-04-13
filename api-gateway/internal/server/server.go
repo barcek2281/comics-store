@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/barcek2281/comics-store/api-gateway/internal/handler"
+	"github.com/barcek2281/comics-store/api-gateway/internal/middleware"
 )
 
 type Server struct {
@@ -39,7 +40,7 @@ func (s *Server) configure() {
 	s.mux.Handle("POST /auth/register", s.authHandler.Register())
 
 	s.mux.Handle("POST inventory/create", s.inventoryHandler.Create())
-	s.mux.Handle("DELETE inventory/delete", s.inventoryHandler.Delete())
+	s.mux.Handle("DELETE inventory/delete", middleware.AuthMiddleware(s.inventoryHandler.Delete()))
 	s.mux.Handle("PUT inventory/update", s.inventoryHandler.Update())
 	s.mux.Handle("GET inventory/list", s.inventoryHandler.List())
 	s.mux.Handle("GET inventory/get", s.inventoryHandler.Get())

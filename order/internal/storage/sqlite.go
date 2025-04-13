@@ -6,6 +6,8 @@ import (
 	"fmt"
 
 	orderv1 "github.com/barcek2281/proto/gen/go/order"
+	_ "github.com/mattn/go-sqlite3"
+
 )
 
 type Storage struct {

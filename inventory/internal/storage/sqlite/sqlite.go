@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"github.com/barcek2281/comics-store/inventory/internal/model"
+	_ "github.com/mattn/go-sqlite3"
+
 )
 
 type Storage struct {
