@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/barcek2281/comics-store/api-gateway/internal/utils"
 	authv1 "github.com/barcek2281/proto-comics/gen/go/auth"
 	"google.golang.org/grpc"
 )
@@ -37,7 +38,7 @@ func (h *AuthHandler) Register() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req Req
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-
+			utils.Error(w, r, http.StatusBadRequest, err)
 			return
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
@@ -48,9 +49,38 @@ func (h *AuthHandler) Register() http.HandlerFunc {
 			Password: req.Password,
 		})
 		if err != nil {
-
+			utils.Error(w, r, http.StatusInternalServerError, err)
 			return
 		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{"token": res.Token})
+	}
+}
+
+func (h *AuthHandler) Login() http.HandlerFunc {
+	type Req struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req Req
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "invalid request body", http.StatusBadRequest)
+			return
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		res, err := h.AuthClient.Login(ctx, &authv1.LoginRequest{
+			Email:    req.Email,
+			Password: req.Password,
+		})
+		if err != nil {
+			http.Error(w, "authentication failed", http.StatusUnauthorized)
+			return
+		}
+
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{"token": res.Token})
 	}

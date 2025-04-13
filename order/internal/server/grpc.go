@@ -57,7 +57,6 @@ func (g *GRPCserver) GetOrder(ctx context.Context, in *orderv1.GetOrderRequest) 
 }
 
 func (g *GRPCserver) UpdateOrder(ctx context.Context, in *orderv1.GetOrderRequest) (*orderv1.UpdateOrderResponce, error) {
-	// For simplicity, let’s just mark the order as “updated”
 	err := g.store.UpdateOrderStatus(ctx, in.OrderId, "updated")
 	if err != nil {
 		return &orderv1.UpdateOrderResponce{Status: "failed"}, err

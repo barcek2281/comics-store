@@ -15,7 +15,7 @@ var (
 )
 
 func init() {
-	flag.StringVar(&configPath, "config-path", "", "config path")
+	flag.StringVar(&configPath, "config-path", "./configs/local.yaml", "config path")
 }
 func main() {
 	flag.Parse()
@@ -27,10 +27,9 @@ func main() {
 	)
 
 	s := server.NewServer(log, cfg.Port)
+	fmt.Println("server start")
+	if err := s.Run(); err != nil {
+		fmt.Printf("cannot start a server")
+	}
 
-	go func() {
-		if err := s.Run(); err != nil {
-			fmt.Printf("cannot start a server")
-		}
-	}()
 }
