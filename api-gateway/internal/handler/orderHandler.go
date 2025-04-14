@@ -45,7 +45,8 @@ func (h *OrderHandler) CreateOrder() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req Req
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, "invalid request body", http.StatusBadRequest)
+			utils.Error(w, r, http.StatusBadRequest, fmt.Errorf("invalid request body"))
+			h.log.Error("invalid body")
 			return
 		}
 
@@ -65,7 +66,7 @@ func (h *OrderHandler) CreateOrder() http.HandlerFunc {
 			Items:  items,
 		})
 		if err != nil {
-			http.Error(w, fmt.Sprintf("failed to create order: %v", err), http.StatusInternalServerError)
+			utils.Error(w, r, http.StatusInternalServerError, fmt.Errorf("failed to create order: %v", err))
 			return
 		}
 
@@ -77,7 +78,7 @@ func (h *OrderHandler) GetOrder() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orderID := r.URL.Query().Get("id")
 		if orderID == "" {
-			http.Error(w, "missing order id", http.StatusBadRequest)
+			utils.Error(w,r,http.StatusBadRequest, fmt.Errorf("missing order id"))
 			return
 		}
 
@@ -86,7 +87,7 @@ func (h *OrderHandler) GetOrder() http.HandlerFunc {
 
 		res, err := h.OrderClient.GetOrder(ctx, &orderv1.GetOrderRequest{OrderId: orderID})
 		if err != nil {
-			http.Error(w, fmt.Sprintf("failed to get order: %v", err), http.StatusInternalServerError)
+			utils.Error(w, r, http.StatusInternalServerError, fmt.Errorf("failed to get order: %v", err))
 			return
 		}
 
@@ -98,7 +99,7 @@ func (h *OrderHandler) UpdateOrder() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orderID := r.URL.Query().Get("id")
 		if orderID == "" {
-			http.Error(w, "missing order id", http.StatusBadRequest)
+			utils.Error(w, r,http.StatusBadRequest, fmt.Errorf("missing order id"))
 			return
 		}
 
@@ -107,7 +108,7 @@ func (h *OrderHandler) UpdateOrder() http.HandlerFunc {
 
 		res, err := h.OrderClient.UpdateOrder(ctx, &orderv1.GetOrderRequest{OrderId: orderID})
 		if err != nil {
-			http.Error(w, fmt.Sprintf("failed to update order: %v", err), http.StatusInternalServerError)
+			utils.Error(w, r, http.StatusInternalServerError, fmt.Errorf("failed to update order: %v", err))
 			return
 		}
 
@@ -119,7 +120,7 @@ func (h *OrderHandler) CloseOrder() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := r.URL.Query().Get("user_id")
 		if userID == "" {
-			http.Error(w, "missing user id", http.StatusBadRequest)
+			utils.Error(w,r, http.StatusBadRequest, fmt.Errorf("missing user id"))
 			return
 		}
 
@@ -128,7 +129,7 @@ func (h *OrderHandler) CloseOrder() http.HandlerFunc {
 
 		res, err := h.OrderClient.CloseOrder(ctx, &orderv1.CloseOrderRequest{UserId: userID})
 		if err != nil {
-			http.Error(w, fmt.Sprintf("failed to close order: %v", err), http.StatusInternalServerError)
+			utils.Error(w,r, http.StatusInternalServerError, fmt.Errorf("failed to close order: %v", err))
 			return
 		}
 		utils.Response(w, r, http.StatusOK, res)
@@ -138,7 +139,7 @@ func (h *OrderHandler) DeleteOrder() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := r.URL.Query().Get("user_id")
 		if userID == "" {
-			http.Error(w, "missing user id", http.StatusBadRequest)
+			utils.Error(w, r, http.StatusBadRequest, fmt.Errorf("missing user id"))
 			return
 		}
 
@@ -147,7 +148,7 @@ func (h *OrderHandler) DeleteOrder() http.HandlerFunc {
 
 		res, err := h.OrderClient.DeleteOrder(ctx, &orderv1.DeleteOrderRequest{UserId: userID})
 		if err != nil {
-			http.Error(w, fmt.Sprintf("failed to delete order: %v", err), http.StatusInternalServerError)
+			utils.Error(w,r, http.StatusInternalServerError, fmt.Errorf("failed to delete order: %v", err))
 			return
 		}
 
@@ -158,7 +159,7 @@ func (h *OrderHandler) ListOrders() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := r.URL.Query().Get("user_id")
 		if userID == "" {
-			http.Error(w, "missing user id", http.StatusBadRequest)
+			utils.Error(w, r, http.StatusBadRequest, fmt.Errorf("missing user id"))
 			return
 		}
 
@@ -167,7 +168,7 @@ func (h *OrderHandler) ListOrders() http.HandlerFunc {
 
 		res, err := h.OrderClient.ListOrders(ctx, &orderv1.OrderListRequest{UserId: userID})
 		if err != nil {
-			http.Error(w, fmt.Sprintf("failed to list orders: %v", err), http.StatusInternalServerError)
+			utils.Error(w, r, http.StatusInternalServerError, fmt.Errorf("failed to list orders: %v", err))
 			return
 		}
 

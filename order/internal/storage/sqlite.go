@@ -30,6 +30,22 @@ func (s *Storage) CreateOrder(ctx context.Context, order *orderv1.Order) error {
 	if err != nil {
 		return err
 	}
+
+	for _, item := range order.Items {
+		var availableQuantity int32
+		err := tx.QueryRowContext(ctx,
+			`SELECT quantity FROM comics WHERE id = ?`,
+			item.ProductId,
+		).Scan(&availableQuantity)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("comic with id %s not found: %w", item.ProductId, err)
+		}
+		if item.Quantity > availableQuantity {
+			tx.Rollback()
+			return fmt.Errorf("not enough stock for comic id %s", item.ProductId)
+		}
+	}
 	
 	_, err = tx.ExecContext(ctx,
 		`INSERT INTO orders (id, user_id, total_price, status, created_at)
