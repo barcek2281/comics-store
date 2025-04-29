@@ -1,8 +1,11 @@
 package server
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/barcek2281/comics-store/order/internal/storage"
@@ -42,6 +45,13 @@ func (g *GRPCserver) CreateOrder(ctx context.Context, in *orderv1.CreateOrderReq
 	if err != nil {
 		fmt.Printf("error to create order: %v", err)
 		return nil, err
+	}
+	bites, err := json.Marshal(order)
+	if err != nil {
+		fmt.Printf("error to marshal json: %v", err)
+	} else {
+		b := bytes.NewBuffer(bites)
+		http.NewRequest("POST", "localhost:8181/create-order", b)
 	}
 
 	return &orderv1.CreateOrderResponse{

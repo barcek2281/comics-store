@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  api:
+
+  auth:
+
+  order:
+
+  inventory:
+
+  consumer:
+
+  producer:
+  
