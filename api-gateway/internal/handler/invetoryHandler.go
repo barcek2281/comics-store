@@ -20,7 +20,7 @@ type InventoryHandler struct {
 }
 
 func NewInventoryHandler(log *slog.Logger, portInventory int) *InventoryHandler {
-	conn, err := grpc.Dial(fmt.Sprintf("localhost:%d", portInventory), grpc.WithInsecure())
+	conn, err := grpc.NewClient(fmt.Sprintf("localhost:%d", portInventory), grpc.WithInsecure())
 	if err != nil {
 		log.Error("failed to connect to inventory service", slog.String("error", err.Error()))
 		return nil

@@ -3,7 +3,7 @@ package configs
 import "github.com/ilyakaznacheev/cleanenv"
 
 type Config struct {
-	Port int `yaml:"port"`
+	Port        int    `yaml:"port"`
 	StoragePath string `yaml:"storage_path"`
 }
 
