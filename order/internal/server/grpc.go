@@ -52,7 +52,7 @@ func (g *GRPCserver) CreateOrder(ctx context.Context, in *orderv1.CreateOrderReq
 		fmt.Printf("error to marshal json: %v", err)
 	} else {
 		b := bytes.NewBuffer(bites)
-		req, err := http.NewRequest(http.MethodPost, "http://localhost:8181/create-order", b)
+		req, err := http.NewRequest(http.MethodPost, "http://producer:8181/create-order", b)
 		if err != nil {
 			fmt.Println("erro to req:  ", err)
 		}

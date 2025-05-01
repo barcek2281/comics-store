@@ -22,12 +22,12 @@ type NatsServer struct {
 }
 
 func NewNatsServer(store *sqlite.Store, inventoryPort int) *NatsServer {
-	nc, err := nats.Connect(nats.DefaultURL)
+	nc, err := nats.Connect("nats://nats:4222")
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
 
-	conn, err := grpc.NewClient(fmt.Sprintf("localhost:%d", inventoryPort), grpc.WithInsecure())
+	conn, err := grpc.NewClient(fmt.Sprintf("inventory:%d", inventoryPort), grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("error to connect grpc, error: %v, port: %d", err, inventoryPort)
 	}
@@ -67,7 +67,7 @@ func (n *NatsServer) HandleCreateOrder(m *nats.Msg) {
 		n.inventoryClient.Update(ctx, &inventoryv1.UpdateRequest{
 			Id:          int64(newId),
 			Title:       comics.Title,
-			Quantity:    int64(comics.Quantity - 1),
+			Quantity:    int64(comics.Quantity - item.Quantity),
 			Author:      comics.Author,
 			Description: comics.Description,
 			Price:       int64(comics.Price),

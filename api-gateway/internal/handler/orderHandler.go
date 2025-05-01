@@ -19,7 +19,7 @@ type OrderHandler struct {
 }
 
 func NewOrderHandler(log *slog.Logger, portOrder int) *OrderHandler {
-	conn, err := grpc.Dial(fmt.Sprintf("localhost:%d", portOrder), grpc.WithInsecure())
+	conn, err := grpc.Dial(fmt.Sprintf("order:%d", portOrder), grpc.WithInsecure())
 	if err != nil {
 		log.Error("failed to connect to order service", slog.String("error", err.Error()))
 		return nil

@@ -5,7 +5,38 @@ services:
     build: ./api-gateway
     ports:
       - "8080:8080"
+    depends_on:
+      - nats
 
+  inventory:
+    build: ./inventory
+    ports:
+      - "50052:50052"
+    depends_on:
+      - api
+  
+  order:
+    build: ./order
+    ports:
+      - "50053:50053"
+    volumes:
+      - "./order/storage/:/app/storage"
+    depends_on:
+      - api
+  
+    
+  producer:
+    build: ./producer
+    ports:
+      - "8081:8081"
+    depends_on:
+      - api
+  
+  consumer:
+    build: ./consumer
+    depends_on:
+      - producer
+    
   nats:
     image: nats
     ports:
