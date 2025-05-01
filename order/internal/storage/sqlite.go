@@ -119,7 +119,6 @@ func (s *Storage) CloseOrderByUserID(ctx context.Context, userID string) error {
 }
 
 func (s *Storage) DeleteOrderByUserID(ctx context.Context, userID string) error {
-	// This deletes all orders and their items for a given user
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err

@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -51,7 +52,19 @@ func (g *GRPCserver) CreateOrder(ctx context.Context, in *orderv1.CreateOrderReq
 		fmt.Printf("error to marshal json: %v", err)
 	} else {
 		b := bytes.NewBuffer(bites)
-		http.NewRequest("POST", "localhost:8181/create-order", b)
+		req, err := http.NewRequest(http.MethodPost, "http://localhost:8181/create-order", b)
+		if err != nil {
+			fmt.Println("erro to req:  ", err)
+		}
+		res, err := http.DefaultClient.Do(req)
+		if err != nil {
+			fmt.Printf("client: error making http request: %s\n", err)
+		}
+
+		if res.StatusCode != 200 {
+			slog.Error("error recieve message", "status", res.StatusCode)
+		}
+		slog.Info("request to create order producer")
 	}
 
 	return &orderv1.CreateOrderResponse{

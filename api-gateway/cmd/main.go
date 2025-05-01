@@ -27,7 +27,7 @@ func main() {
 	)
 
 	s := server.NewServer(log, cfg.Port)
-	fmt.Println("server start")
+	slog.Info("server starting", "port", cfg.Port)
 	if err := s.Run(); err != nil {
 		fmt.Printf("cannot start a server")
 	}

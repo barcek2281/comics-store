@@ -2,14 +2,11 @@ version: '3.8'
 
 services:
   api:
+    build: ./api-gateway
+    ports:
+      - "8080:8080"
 
-  auth:
-
-  order:
-
-  inventory:
-
-  consumer:
-
-  producer:
-  
+  nats:
+    image: nats
+    ports:
+      - "4222:4222"
