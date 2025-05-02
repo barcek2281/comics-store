@@ -102,6 +102,34 @@ func (h *InventoryHandler) List() http.HandlerFunc {
 			return
 		}
 
+		page := r.URL.Query().Get("page")
+		price := r.URL.Query().Get("price-up")
+
+		if page != "" {
+			pageInt, err := strconv.Atoi(page)
+			need_res := []*inventoryv1.Comics{}
+			if err == nil {
+				for i := range res.Comics {
+					if i >= (pageInt-1)*5 && i < (pageInt)*5 {
+						need_res = append(need_res, res.Comics[i])
+					}
+				}
+			}
+			res.Comics = need_res
+		}
+
+		if price != "" {
+			priceInt, err := strconv.Atoi(price)
+			need_res := []*inventoryv1.Comics{}
+			if err == nil {
+				for i := range res.Comics {
+					if res.Comics[i].Price > float32(priceInt) {
+						need_res = append(need_res, res.Comics[i])
+					}
+				}
+			}
+			res.Comics = need_res
+		}
 		utils.Response(w, r, http.StatusOK, res.Comics)
 	}
 }
@@ -130,13 +158,13 @@ func (h *InventoryHandler) Delete() http.HandlerFunc {
 
 func (h *InventoryHandler) Update() http.HandlerFunc {
 	type Req struct {
-		Id          int64   `json:"id"`
-		Title       string  `json:"title"`
-		Author      string  `json:"author"`
-		Description string  `json:"description"`
-		ReleaseDate string  `json:"release_date"`
-		Price       int64 `json:"price"`
-		Quantity    int32   `json:"quantity"`
+		Id          int64  `json:"id"`
+		Title       string `json:"title"`
+		Author      string `json:"author"`
+		Description string `json:"description"`
+		ReleaseDate string `json:"release_date"`
+		Price       int64  `json:"price"`
+		Quantity    int32  `json:"quantity"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
