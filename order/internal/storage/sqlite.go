@@ -4,10 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
 
 	orderv1 "github.com/barcek2281/proto/gen/go/order"
 	_ "github.com/mattn/go-sqlite3"
-
 )
 
 type Storage struct {
@@ -41,12 +41,15 @@ func (s *Storage) CreateOrder(ctx context.Context, order *orderv1.Order) error {
 			tx.Rollback()
 			return fmt.Errorf("comic with id %s not found: %w", item.ProductId, err)
 		}
+		slog.Info("info", "item quantity", item.Quantity, "avaible", availableQuantity)
 		if item.Quantity > availableQuantity {
 			tx.Rollback()
+			slog.Error("cannot fit with items", "item quantity", item.Quantity, "avaible", availableQuantity)
+
 			return fmt.Errorf("not enough stock for comic id %s", item.ProductId)
 		}
 	}
-	
+
 	_, err = tx.ExecContext(ctx,
 		`INSERT INTO orders (id, user_id, total_price, status, created_at)
 		 VALUES (?, ?, ?, ?, ?)`,
@@ -65,6 +68,8 @@ func (s *Storage) CreateOrder(ctx context.Context, order *orderv1.Order) error {
 		)
 		if err != nil {
 			tx.Rollback()
+			slog.Error("error write to db", "error", err)
+
 			return err
 		}
 	}
@@ -127,6 +132,8 @@ func (s *Storage) DeleteOrderByUserID(ctx context.Context, userID string) error 
 	rows, err := tx.QueryContext(ctx, `SELECT id FROM orders WHERE user_id = ?`, userID)
 	if err != nil {
 		tx.Rollback()
+		slog.Error("error to find", "error", err)
+
 		return err
 	}
 	defer rows.Close()
@@ -145,6 +152,8 @@ func (s *Storage) DeleteOrderByUserID(ctx context.Context, userID string) error 
 		_, err = tx.ExecContext(ctx, `DELETE FROM order_items WHERE order_id = ?`, id)
 		if err != nil {
 			tx.Rollback()
+			slog.Error("error to delete", "error", err)
+
 			return err
 		}
 	}
@@ -152,6 +161,8 @@ func (s *Storage) DeleteOrderByUserID(ctx context.Context, userID string) error 
 	_, err = tx.ExecContext(ctx, `DELETE FROM orders WHERE user_id = ?`, userID)
 	if err != nil {
 		tx.Rollback()
+		slog.Error("error to delete", "error", err)
+
 		return err
 	}
 

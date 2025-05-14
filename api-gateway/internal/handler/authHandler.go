@@ -8,25 +8,29 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/barcek2281/comics-store/api-gateway/internal/cache"
 	"github.com/barcek2281/comics-store/api-gateway/internal/utils"
-	authv1 "github.com/barcek2281/proto-comics/gen/go/auth"
+	authv1 "github.com/barcek2281/proto/gen/go/auth"
+	"github.com/go-redis/redis/v8"
 	"google.golang.org/grpc"
 )
 
 type AuthHandler struct {
-	log        *slog.Logger
-	AuthClient authv1.AuthClient
+	log         *slog.Logger
+	AuthClient  authv1.AuthClient
+	redisClient *redis.Client
 }
 
 func NewAuthHandler(log *slog.Logger, portAuth int) *AuthHandler {
-	conn, err := grpc.Dial(fmt.Sprintf("localhost:%d", portAuth), grpc.WithInsecure())
+	conn, err := grpc.Dial(fmt.Sprintf("auth:%d", portAuth), grpc.WithInsecure())
 	if err != nil {
 		return nil
 	}
 	AuthClient := authv1.NewAuthClient(conn)
 	return &AuthHandler{
-		log:        log,
-		AuthClient: AuthClient,
+		log:         log,
+		AuthClient:  AuthClient,
+		redisClient: cache.NewRedisClient(),
 	}
 }
 
@@ -41,14 +45,27 @@ func (h *AuthHandler) Register() http.HandlerFunc {
 			utils.Error(w, r, http.StatusBadRequest, err)
 			return
 		}
-		ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		usedEmail := fmt.Sprintf("email:%s", req.Email)
+		_, err := h.redisClient.Get(ctx, usedEmail).Result()
+		if err == nil {
+			utils.Response(w, r, http.StatusBadRequest, "no")
+			return
+		}
+		ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
 		res, err := h.AuthClient.Register(ctx, &authv1.RegisterRequest{
-			Email: req.Email,
+			Email:    req.Email,
 			Password: req.Password,
 		})
 		if err != nil {
+			ctx, cancel = context.WithTimeout(context.Background(), 60*time.Second)
+			defer cancel()
+
+			h.redisClient.Set(ctx, usedEmail, []byte("0"), time.Minute*5)
+			slog.Info("set data for redis")
 			utils.Error(w, r, http.StatusInternalServerError, err)
 			return
 		}

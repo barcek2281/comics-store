@@ -4,8 +4,14 @@ go 1.22.2
 
 require (
 	github.com/barcek2281/proto-comics v0.0.0-20250412081600-6c052819b37e
+	github.com/go-redis/redis/v8 v8.11.5
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	google.golang.org/grpc v1.71.1
+)
+
+require (
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 )
 
 require (

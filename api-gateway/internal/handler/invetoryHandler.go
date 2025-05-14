@@ -9,14 +9,19 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/barcek2281/comics-store/api-gateway/internal/cache"
 	"github.com/barcek2281/comics-store/api-gateway/internal/utils"
 	inventoryv1 "github.com/barcek2281/proto/gen/go/inventory"
+	"github.com/go-redis/redis/v8"
 	"google.golang.org/grpc"
 )
+
+const InventoryCachedKey = "inventoryList"
 
 type InventoryHandler struct {
 	log             *slog.Logger
 	InventoryClient inventoryv1.InventoryClient
+	redisClient     *redis.Client
 }
 
 func NewInventoryHandler(log *slog.Logger, portInventory int) *InventoryHandler {
@@ -29,6 +34,7 @@ func NewInventoryHandler(log *slog.Logger, portInventory int) *InventoryHandler 
 	return &InventoryHandler{
 		log:             log,
 		InventoryClient: client,
+		redisClient:     cache.NewRedisClient(),
 	}
 }
 
@@ -64,6 +70,10 @@ func (h *InventoryHandler) Create() http.HandlerFunc {
 			http.Error(w, fmt.Sprintf("failed to create comic: %v", err), http.StatusInternalServerError)
 			return
 		}
+		ctx, cancel = context.WithTimeout(context.Background(), 60*time.Second)
+		defer cancel()
+		h.redisClient.Del(ctx, InventoryCachedKey)
+		slog.Info("updated redis cached data")
 		utils.Response(w, r, http.StatusOK, map[string]int64{"id": res.Id})
 	}
 }
@@ -95,15 +105,28 @@ func (h *InventoryHandler) List() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
+		page := r.URL.Query().Get("page")
+		price := r.URL.Query().Get("price-up")
+		cachedKey := InventoryCachedKey
+
+		if price == "" && page == "" {
+			ctx, cancel = context.WithTimeout(context.Background(), 60*time.Second)
+			defer cancel()
+			cached, err := h.redisClient.Get(ctx, cachedKey).Result()
+			if err == nil {
+				var prod []*inventoryv1.Comics
+				_ = json.Unmarshal([]byte(cached), &prod)
+				utils.Response(w, r, http.StatusOK, prod)
+				slog.Info("get cached data from redis")
+				return
+			}
+		}
 
 		res, err := h.InventoryClient.List(ctx, &inventoryv1.ListRequest{})
 		if err != nil {
 			http.Error(w, fmt.Sprintf("failed to list comics: %v", err), http.StatusInternalServerError)
 			return
 		}
-
-		page := r.URL.Query().Get("page")
-		price := r.URL.Query().Get("price-up")
 
 		if page != "" {
 			pageInt, err := strconv.Atoi(page)
@@ -130,6 +153,15 @@ func (h *InventoryHandler) List() http.HandlerFunc {
 			}
 			res.Comics = need_res
 		}
+
+		if price == "" && page == "" {
+			ctx, cancel = context.WithTimeout(context.Background(), 60*time.Second)
+			defer cancel()
+			b, _ := json.Marshal(res.Comics)
+			h.redisClient.Set(ctx, cachedKey, b, time.Minute*5)
+			slog.Info("set data for redis")
+
+		}
 		utils.Response(w, r, http.StatusOK, res.Comics)
 	}
 }
@@ -151,6 +183,10 @@ func (h *InventoryHandler) Delete() http.HandlerFunc {
 			http.Error(w, fmt.Sprintf("failed to delete comic: %v", err), http.StatusInternalServerError)
 			return
 		}
+		ctx, cancel = context.WithTimeout(context.Background(), 60*time.Second)
+		defer cancel()
+		h.redisClient.Del(ctx, InventoryCachedKey)
+		slog.Info("updated redis cached data")
 
 		utils.Response(w, r, http.StatusOK, res)
 	}
@@ -190,8 +226,10 @@ func (h *InventoryHandler) Update() http.HandlerFunc {
 			http.Error(w, fmt.Sprintf("failed to update comic: %v", err), http.StatusInternalServerError)
 			return
 		}
-
+		ctx, cancel = context.WithTimeout(context.Background(), 60*time.Second)
+		defer cancel()
+		h.redisClient.Del(ctx, InventoryCachedKey)
+		slog.Info("updated redis cached data")
 		utils.Response(w, r, http.StatusOK, res)
-
 	}
 }

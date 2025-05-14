@@ -10,7 +10,7 @@ require (
 	google.golang.org/grpc v1.71.1
 )
 
-require golang.org/x/crypto v0.37.0 // indirect
+require golang.org/x/crypto v0.37.0
 
 require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible
