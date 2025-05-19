@@ -1,12 +1,13 @@
 package sqlite
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/barcek2281/comics-store/inventory/internal/model"
 	_ "github.com/mattn/go-sqlite3"
-
 )
 
 type Storage struct {
@@ -104,7 +105,13 @@ func (s *Storage) List() ([]model.Comics, error) {
 
 // Update modifies an existing comic
 func (s *Storage) Update(comic model.Comics) error {
-	_, err := s.db.Exec(`
+	ctx, cn := context.WithTimeout(context.Background(), time.Second*60)
+	defer cn()
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(`
 		UPDATE comics
 		SET title = ?, author = ?, description = ?, release_date = ?, price = ?, quantity = ?
 		WHERE id = ?
@@ -117,5 +124,8 @@ func (s *Storage) Update(comic model.Comics) error {
 		comic.Quantity,
 		comic.ID,
 	)
-	return err
+	if err != nil {
+		tx.Rollback()
+	}
+	return tx.Commit()
 }
