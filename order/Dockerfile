@@ -2,10 +2,8 @@ FROM golang:1.23
 
 WORKDIR /app
 
-# Enable CGO for SQLite
 ENV CGO_ENABLED=1
 
-# Install SQLite and migrate
 RUN apt-get update && apt-get install -y \
     sqlite3 \
     libsqlite3-dev \

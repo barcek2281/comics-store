@@ -5,16 +5,27 @@ import (
 	"database/sql"
 	"fmt"
 	"log/slog"
+	"strconv"
 
+	inventoryv1 "github.com/barcek2281/proto/gen/go/inventory"
 	orderv1 "github.com/barcek2281/proto/gen/go/order"
+
 	_ "github.com/mattn/go-sqlite3"
+	"google.golang.org/grpc"
 )
 
 type Storage struct {
-	db *sql.DB
+	db              *sql.DB
+	InventoryCLient inventoryv1.InventoryClient
 }
 
 func NewStorage(storagePath string) (*Storage, error) {
+	conn, err := grpc.NewClient(fmt.Sprintf("inventory:%s", "50052"), grpc.WithInsecure())
+	if err != nil {
+		return nil, nil
+	}
+	client := inventoryv1.NewInventoryClient(conn)
+
 	const op = "storage.sqlite.New"
 
 	db, err := sql.Open("sqlite3", storagePath)
@@ -22,7 +33,10 @@ func NewStorage(storagePath string) (*Storage, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return &Storage{db: db}, nil
+	return &Storage{
+		db: db,
+		InventoryCLient: client,
+		}, nil
 }
 
 func (s *Storage) CreateOrder(ctx context.Context, order *orderv1.Order) error {
@@ -32,19 +46,16 @@ func (s *Storage) CreateOrder(ctx context.Context, order *orderv1.Order) error {
 	}
 
 	for _, item := range order.Items {
-		var availableQuantity int32
-		err := tx.QueryRowContext(ctx,
-			`SELECT quantity FROM comics WHERE id = ?`,
-			item.ProductId,
-		).Scan(&availableQuantity)
+		n, _ := strconv.Atoi(item.ProductId)
+		comics, err := s.InventoryCLient.Get(ctx, &inventoryv1.GetRequest{Id: int64(n)})
 		if err != nil {
 			tx.Rollback()
-			return fmt.Errorf("comic with id %s not found: %w", item.ProductId, err)
+			return err
 		}
-		slog.Info("info", "item quantity", item.Quantity, "avaible", availableQuantity)
-		if item.Quantity > availableQuantity {
+		slog.Info("info", "item quantity", item.Quantity, "avaible", comics.Quantity)
+		if item.Quantity > comics.Quantity {
 			tx.Rollback()
-			slog.Error("cannot fit with items", "item quantity", item.Quantity, "avaible", availableQuantity)
+			slog.Error("cannot fit with items", "item quantity", item.Quantity, "avaible", comics.Quantity)
 
 			return fmt.Errorf("not enough stock for comic id %s", item.ProductId)
 		}
